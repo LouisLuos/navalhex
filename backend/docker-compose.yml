@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: navalhex-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: navalhex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 86320590
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
