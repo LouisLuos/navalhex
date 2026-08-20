@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,6 +46,7 @@ public class UserEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false)
     private UserRole role;
 

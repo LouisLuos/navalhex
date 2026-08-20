@@ -20,4 +20,10 @@ public class GlobalExceptionHandler {
         });
         return ApiResponse.error(HttpStatus.BAD_REQUEST, "Erro de validação nos campos", errors);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleIllegalArgument(IllegalArgumentException exception) {
+    return ApiResponse.error(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+}
 }
