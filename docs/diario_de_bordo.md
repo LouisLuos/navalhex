@@ -54,8 +54,74 @@ Configurar o ambiente de banco de dados local com Docker Compose, alinhar as pro
 
 ---
 
+## 📅 20/08/2026 - Endpoint de Cadastro com Validação, Criptografia BCrypt e Frontend Angular (Task-1.2 e Task-1.4)
+
+### 🎯 Objetivo do Dia
+Implementar o ciclo completo de cadastro de usuários: do backend Spring Boot (DTO com validação, serviço com hash de senha, tratamento global de exceções e CORS) até o frontend Angular moderno (Single Page Application, Reactive Forms, AuthService e estilização com Tailwind CSS).
+
+---
+
+### 🛠️ O que foi feito:
+
+#### 1. Backend (Spring Boot & PostgreSQL)
+* **`RegisterDTO.java`:** Record imutável com validações rigorosas do Jakarta Bean Validation:
+  * `@NotBlank` e `@Size(min = 3, max = 100)` para o `name`.
+  * `@NotBlank` e `@Email` para o `email`.
+  * `@NotBlank`, `@Size(min = 8, max = 60)` e `@Pattern` com Regex para senha forte (maiúscula, minúscula, número e caractere especial).
+  * `@NotBlank`, `@Size(min = 11, max = 15)` e `@Pattern` para formato de WhatsApp brasileiro com DDD.
+  * `@NotNull` para a `role` (`UserRole`).
+* **`ApiResponse<T>.java`:** Contrato padronizado de resposta com Generics (`<T>`) e *Static Factory Methods* (`.success()` e `.error()`).
+* **`GlobalExceptionHandler.java`:** Interceptador `@RestControllerAdvice` capturando:
+  * `MethodArgumentNotValidException` para formatar os erros do Bean Validation em um mapa `{ campo: "mensagem" }`.
+  * `IllegalArgumentException` para tratar erros de regras de negócio (ex: e-mail ou WhatsApp duplicados).
+* **`UserService.java`:**
+  * Injeção de dependências com `@RequiredArgsConstructor`.
+  * Verificação de unicidade com `existsByEmail` e `existsByWhatsapp`.
+  * Criptografia de senha com BCrypt via `PasswordEncoder`.
+  * Instanciação segura da entidade usando o padrão `@Builder`.
+* **`UserEntity.java`:** Mapeamento de tipo enum nativo do Postgres via `@JdbcType(PostgreSQLEnumJdbcType.class)`.
+* **`SecurityConfig.java`:** Liberação de rotas públicas de auth e configuração de **CORS** (`CorsConfigurationSource`) para `http://localhost:4200`.
+* **`AuthController.java`:** Endpoint `POST /api/auth/register` com `@ResponseStatus(HttpStatus.CREATED)` e payload seguro (sem retorno de senhas).
+
+#### 2. Frontend (Angular 22 & Tailwind CSS v4)
+* **Scaffold & Configuração:** Projeto SPA criado com `@angular/cli` e `provideHttpClient()` configurado globalmente em `app.config.ts`.
+* **Modelos TypeScript:** `user.model.ts` e `api-response.model.ts` espelhando os contratos do backend.
+* **`AuthService.ts`:** Serviço com `@Injectable({ providedIn: 'root' })`, injeção com `inject(HttpClient)` e método reativo `register()` retornando `Observable<ApiResponse<void>>`.
+* **`RegisterComponent`:**
+  * Formulário reativo com `FormGroup`, `FormControl` e `Validators` nativos.
+  * Validação cruzada de confirmação de senha (`confirmPassword`).
+  * Estados reativos de carregamento e erro com **Signals** (`isLoading`, `errorMessage`).
+  * Estilização visual premium com Tailwind CSS v4 (tema escuro, glassmorphism e cores âmbar do design system).
+  * Configuração de rota `/register` no `app.routes.ts`.
+
+---
+
+### 💡 Guia de Revisão & Conceitos Fundamentais:
+
+#### 🔒 1. Segurança do Payload de Resposta (Por que nunca devolver senhas?)
+- **Regra:** O backend **nunca** deve devolver a senha (mesmo em hash) no JSON de resposta.
+- **Solução aplicada:** O `AuthController` retorna `ApiResponse<Void>`, respondendo apenas confirmação de sucesso (`201 Created`) com `data: null`.
+
+#### 🌐 2. O que é CORS e onde ele deve ser configurado?
+- **Conceito:** O CORS é uma trava de segurança do **navegador** (não do Angular).
+- **Regra:** O backend é o único responsável por declarar quem tem permissão para acessá-lo.
+- **Configuração no Spring:** O `SecurityConfig` usa `CorsConfigurationSource` liberando a origem `http://localhost:4200`, métodos (`GET, POST, PUT, DELETE, OPTIONS, PATCH`) e cabeçalhos.
+
+#### ⚡ 3. Angular Moderno: Injeção de Dependências e Observables
+- **`providedIn: 'root'`:** Cria um Singleton global na aplicação sem precisar declarar manualmente no `app.config.ts`.
+- **`inject(HttpClient)`:** Função moderna do Angular que substitui a injeção tradicional por construtor.
+- **Observables vs Promises:** O `HttpClient` do Angular retorna Observables (RxJS). Eles são *lazy* (só disparam a requisição HTTP quando você chama `.subscribe()`).
+
+#### 📝 4. Reactive Forms (`FormGroup` vs `FormControl`)
+- `FormGroup` unifica os campos sob um único objeto, facilitando validações de estado global (`form.valid`), validação cruzada entre campos e envio direto dos valores.
+
+---
+
 ### ⏭️ Próximos Passos (Próxima Sessão):
-* Início da **`[Task-1.2]`**:
-  * Criação dos DTOs de cadastro (`UserRegisterRequestDTO` e `UserResponseDTO`).
-  * Implementação da camada de serviço (`UserService`) com hash de senha (BCrypt) e regras de validação.
-  * Implementação do endpoint `POST /api/auth/register` no `AuthController`.
+* Implementação da **`[Task-1.3]` (Backend Login)**:
+  * Criação do `LoginDTO`.
+  * Validação de credenciais e geração de Token JWT (`io.jsonwebtoken` / Spring Security).
+  * Retorno do token e claims de role.
+* Implementação da **`[Task-1.5]` (Frontend Login)**:
+  * Criação do `LoginComponent`.
+  * Armazenamento seguro do JWT e gerenciamento de estado de sessão.

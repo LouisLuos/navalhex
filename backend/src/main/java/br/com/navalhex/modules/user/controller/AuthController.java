@@ -22,8 +22,8 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<RegisterDTO> register(@Valid @RequestBody RegisterDTO dtoRegister) {
+    public ApiResponse<Void> register(@Valid @RequestBody RegisterDTO dtoRegister) {
         userService.createUser(dtoRegister);
-        return ApiResponse.success(HttpStatus.CREATED, "Usuário cadastrado com sucesso!", dtoRegister);
+        return ApiResponse.success(HttpStatus.CREATED, "Usuário cadastrado com sucesso!", null);
     }
 }
