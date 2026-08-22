@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/auth`;
+    private apiUrl = `${environment.apiUrl}/api/auth`;
 
     register(user: RegisterDTO) {
         return this.http.post<ApiResponse<void>>(`${this.apiUrl}/register`, user);
