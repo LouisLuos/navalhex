@@ -114,6 +114,14 @@ No diretório `backend`:
 ```
 O Flyway executará automaticamente as migrações no banco local e a API estará pronta na porta `8080`.
 
+### 4. Executar o Frontend (Angular)
+No diretório `frontend`:
+```bash
+npm install
+npm start # ou ng serve
+```
+A aplicação estará disponível em `http://localhost:4200`.
+
 ---
 
 ## 📚 Documentação Complementar

@@ -117,11 +117,85 @@ Implementar o ciclo completo de cadastro de usuários: do backend Spring Boot (D
 
 ---
 
+## 📅 22/08/2026 - Autenticação JWT Stateless, SecurityFilter e Integração de Login no Frontend Angular (Task-1.3 e Task-1.5)
+
+### 🎯 Objetivo do Dia
+Implementar o fluxo completo de autenticação e proteção de rotas com JSON Web Tokens (JWT) no Spring Boot e integrar com o Frontend Angular:
+1. Geração, assinatura e validação de tokens JWT usando `com.auth0:java-jwt`.
+2. Filtro de segurança customizado (`SecurityFilter` herdando de `OncePerRequestFilter`).
+3. Endpoint de Login (`POST /api/auth/login`) com mitigação de *User Enumeration*.
+4. Frontend Angular com Reactive Forms, `AuthService.login()` com operador `tap`, tela de Login estilizada e página de `Dashboard`.
+
+---
+
+### 🛠️ O que foi feito:
+
+#### 1. Backend (Spring Boot 4 / Java 21)
+* **Dependência `java-jwt`:** Adicionada a biblioteca oficial da Auth0 (`com.auth0:java-jwt:4.4.0`) no `pom.xml`.
+* **Propriedade Secreta Configurável:** Chave secreta de assinatura externalizada no `application.properties` com fallback para dev:
+  `api.security.token.secret=${JWT_SECRET:minha-chave-secreta-super-segura-123456}`.
+* **`TokenService.java` (`br.com.navalhex.security`):**
+  * `generateToken(UserEntity user)`: Emite token assinado com algoritmo `HMAC256`, expiração de 2 horas (fuso `-03:00`), `subject` com o e-mail e claim personalizado `role`.
+  * `validateToken(String token)`: Valida a integridade e assinatura criptográfica do token, retornando o e-mail ou string vazia caso inválido/expirado.
+  * `recoverToken(HttpServletRequest request)`: Extrai o token do cabeçalho `Authorization: Bearer <token>`.
+* **DTOs de Autenticação (`modules.user.dto`):**
+  * **`LoginDTO.java`:** Record imutável com `@NotBlank` e `@Email` para e-mail e `@NotBlank` para senha.
+  * **`LoginResponseDTO.java`:** Record devolvendo `token`, `name`, `email` e `role`, com construtor auxiliar de conveniência `LoginResponseDTO(UserEntity, String)`.
+* **`UserService.java`:**
+  * Método `login(LoginDTO)`:
+    * Busca o usuário por e-mail no `UserRepository`.
+    * Validação segura de senha com `passwordEncoder.matches(rawPassword, encodedPassword)`.
+    * Proteção contra **User Enumeration**: Mesma mensagem genérica (*"Email ou senha inválidos"*) tanto para usuário inexistente quanto para senha incorreta.
+* **`SecurityFilter.java` (`OncePerRequestFilter`):**
+  * Interceptador de requisições que extrai o token, valida no `TokenService`, recupera o usuário e injeta a autenticação no contexto do Spring Security (`UsernamePasswordAuthenticationToken` + `SecurityContextHolder`).
+* **`SecurityConfig.java`:**
+  * Configuração de sessão **`SessionCreationPolicy.STATELESS`** (sem criação de cookies de sessão em memória).
+  * Registro do filtro customizado na esteira antes do filtro padrão: `.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)`.
+
+#### 2. Frontend (Angular 22 & Tailwind CSS)
+* **Modelos TypeScript (`user.model.ts`):** Criados os tipos `LoginDTO` e `LoginResponseDTO`.
+* **`AuthService.ts`:**
+  * Implementado `login(user: LoginDTO)` utilizando o operador **`tap` do RxJS** para salvar o token no `localStorage` sem consumir o Observable, mantendo o fluxo reativo disponível para o componente.
+* **`LoginComponent` (`pages/login`):**
+  * Formulário reativo com `FormGroup` e `ReactiveFormsModule`.
+  * Estados reativos de `isLoading` e `errorMessage` via Signals.
+  * Redirecionamento automático para `/dashboard` em caso de sucesso.
+* **`DashboardComponent` (`pages/dashboard`):**
+  * Página protegida exibindo status de autenticação e botão de Logout (limpeza de token e redirecionamento para `/login`).
+* **Estilização com TailwindCSS:**
+  * Interface moderna, estética escura (dark theme) com efeitos de vidro (`backdrop-blur-xl`), glow effects e paleta de cores âmbar/zinc do design system Navalhex.
+
+---
+
+### 💡 Guia de Revisão & Conceitos Fundamentais para Estudar:
+
+#### 1. Java & Spring Security
+* **`@Bean` vs `@Component`:**
+  * Use `@Component` / `@Service` em classes do seu próprio código.
+  * Use `@Bean` em métodos dentro de classes `@Configuration` quando você precisa instanciar, configurar e registrar no container do Spring classes externas ou customizadas (ex: `SecurityFilterChain`, `PasswordEncoder`).
+* **JWT Stateless vs Sessão Tradicional:**
+  * No JWT, o servidor **não precisa guardar sessões em memória nem consultar tabelas de token no banco** a cada requisição. O próprio token é assinado e autônomo (carrega `subject`, `roles` e `exp`).
+* **A Esteira de Segurança (*Filter Chain*) e `OncePerRequestFilter`:**
+  * Requisições HTTP passam por uma esteira de filtros em fila. O `filterChain.doFilter(req, res)` passa o controle para o próximo filtro.
+  * O `SecurityContextHolder.getContext().setAuthentication(auth)` é o "crachá" que avisa todos os controllers subsequentes que a requisição está autenticada.
+* **Mitigação de *User Enumeration*:**
+  * Nunca informe ao cliente se o e-mail não existe vs se a senha está errada no login. Responda sempre uma mensagem genérica de erro para não vazar a existência de contas para invasores.
+
+#### 2. Angular & RxJS
+* **Operador `tap` vs `.subscribe()` no Service:**
+  * **Regra de Ouro:** Nunca dê `.subscribe()` dentro de um Service que precisa ser consumido por um componente. O `.subscribe()` consome o fluxo e retorna uma `Subscription`.
+  * Use `.pipe(tap(...))` para efeitos colaterais (como salvar no `localStorage`) e retorne o `Observable` intacto para o componente se inscrever e controlar o estado da tela (loading, erros, redirecionamentos).
+* **Observer (`next`, `error`, `complete`):**
+  * `next`: chamado quando o dado chega com sucesso (2xx).
+  * `error`: chamado quando a requisição falha (4xx/5xx/rede).
+  * `complete`: chamado quando o fluxo é finalizado.
+* **Formulários Reativos Standalone:**
+  * Componentes standalone que usam `[formGroup]` e `formControlName` **precisam** importar o `ReactiveFormsModule` no seu array de `imports`.
+
+---
+
 ### ⏭️ Próximos Passos (Próxima Sessão):
-* Implementação da **`[Task-1.3]` (Backend Login)**:
-  * Criação do `LoginDTO`.
-  * Validação de credenciais e geração de Token JWT (`io.jsonwebtoken` / Spring Security).
-  * Retorno do token e claims de role.
-* Implementação da **`[Task-1.5]` (Frontend Login)**:
-  * Criação do `LoginComponent`.
-  * Armazenamento seguro do JWT e gerenciamento de estado de sessão.
+1. **Guards de Rota no Angular (`auth.guard.ts`):** Proteger a rota `/dashboard` para impedir acesso direto sem token e redirecionar para `/login`.
+2. **HTTP Interceptor no Angular:** Anexar automaticamente o cabeçalho `Authorization: Bearer <token>` em todas as requisições autenticadas para o backend.
+3. **Fase 2 de Autenticação (Refresh Token & Cookies HttpOnly):** Adicionar suporte a renovação de tokens de longa duração.
+
