@@ -17,7 +17,7 @@ public record RegisterDTO(
     String email,
     
     @NotBlank(message = "Password is required")
-    @Size(min = 8, max = 60, message = "A senha deve conter entre 8 e 60 caracteres")
+    @Size(min = 8, max = 60, message = "A senha deve conter entre 8 e 60 caracteres, pelo menos um minúsuclo um maiúsculo e um caractere especial")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{8,}$", message = "Sua senha deve conter pelo menos 8 caracteres, incluindo 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial (ex: @, #, $).")
     String password,
 
