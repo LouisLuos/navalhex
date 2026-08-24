@@ -220,27 +220,44 @@ Iniciar a **US-MVP.2 (Criação da Barbearia/Tenant)** implementando a persistê
 #### 2. Backend (Spring Boot 4 / Java 21)
 * **`TenantEntity.java`:** Mapeamento JPA com Lombok (`@Builder`, `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`) e auditoria via `@CreationTimestamp` e `@UpdateTimestamp`.
 * **`RegisterDTO.java` (`modules.tenants.dto`):** Record de entrada com validações do Jakarta Bean Validation (`@NotBlank`, `@NotNull`, `@Size`, `@Pattern`).
-* **`TenantRepository.java`:** Interface JPA com derived query methods `existsBySlug(String slug)` e `existsByOwnerId(UUID ownerId)`.
+* **`TenantResponseDTO.java`:** Record público de resposta para o cliente.
+* **`TenantRepository.java`:** Interface JPA com derived query methods `existsBySlug`, `existsByOwnerId`, `findBySlug` e `findByOwnerId`.
 * **`TenantService.java`:**
   * Validação de unicidade do `slug`.
   * Validação de que o usuário logado ainda não possui barbearia cadastrada (`existsByOwnerId`).
-  * Persistência do tenant associado ao `user.getId()`.
+  * `getMyTenant(UUID ownerId)` para carregar a barbearia do usuário logado.
+  * `getTenantBySlug(String slug)` para consulta pública.
 * **`TenantController.java`:**
   * Endpoint `POST /api/tenants/register` anotado com `@ResponseStatus(HttpStatus.CREATED)`.
-  * Injeção automática do usuário autenticado via `@AuthenticationPrincipal UserEntity user`.
+  * Endpoint `GET /api/tenants/me` para consulta autenticada do tenant do usuário.
+  * Endpoint `GET /api/tenants/{slug}` para consulta pública de dados da barbearia.
+
+#### 3. Frontend (Angular 22 & Tailwind CSS)
+* **`auth.interceptor.ts`:** Functional HttpInterceptor que anexa automaticamente o cabeçalho `Authorization: Bearer <token>` em todas as requisições HTTP do Angular.
+* **`tenant.ts` (Service):** Métodos `registerTenant`, `getMyTenant` e `getTenantBySlug` consumindo a API com `ApiResponse<T>`.
+* **`OnboardingComponent` (`pages/onboarding`):**
+  * Formulário reativo para cadastro do estabelecimento.
+  * Geração dinâmica de slug a partir do nome fantasia digitado.
+* **`PublicTenantComponent` (`pages/public-tenant`):**
+  * Landing page pública acessível via `/{slug}` exibindo dados da barbearia, horário de funcionamento e botão para WhatsApp.
+* **`LoginComponent` Inteligente:**
+  * Checagem pós-login para a role `TENANT`: se não tiver barbearia, redireciona para `/onboarding`; se já tiver, vai para `/dashboard`.
 
 ---
 
 ### 💡 Conceitos e Decisões Aprendidos:
 * **Flyway Incremental:** Arquivos de migration adicionais (`V2`, `V3`, etc.) devem conter apenas novas tabelas/alterações, sem redeclarar estruturas criadas no `V1`.
-* **Injeção de Usuário Logado com `@AuthenticationPrincipal`:** Como o Spring Security injeta o `UserEntity` autenticado diretamente nos parâmetros do Controller sem necessidade de acoplar o Service com repositórios de outros módulos.
-* **`existsById` vs `existsByOwnerId`:** A diferença entre buscar pela chave primária da entidade (`id`) versus buscar por um campo de chave estrangeira (`owner_id`).
+* **Injeção de Usuário Logado com `@AuthenticationPrincipal`:** Como o Spring Security injeta o `UserEntity` autenticado diretamente nos parâmetros do Controller sem acoplar o Service com outros módulos.
+* **HTTP Interceptors no Angular (`HttpInterceptorFn`):** Centralização do envio do token JWT em um único ponto, eliminando código duplicado nos serviços.
+* **Roteamento Estático vs Dinâmico no Spring MVC:** Rotas fixas como `/me` devem sempre vir antes de rotas com variáveis de path dinâmicas como `/{slug}` para evitar conflitos de captura.
 
 ---
 
-### ⏭️ Próximos Passos:
-1. **Endpoint Público da Barbearia (`Task-2.3`):** Criar `GET /api/tenants/{slug}` para consulta pública de dados do estabelecimento.
-2. **Frontend Onboarding (`Task-2.4`):** Criar a tela de cadastro da barbearia no frontend Angular.
-3. **Página Pública `/{slug}` (`Task-2.5`):** Criar a landing page pública da barbearia.
+### ⏭️ Próximos Passos (Próxima Sessão):
+1. **US-MVP.3: Cadastro de Serviços Simples:**
+   - Criação da tabela `services` vinculada ao `tenant_id` (`Task-3.1`).
+   - CRUD de serviços no Backend (`Task-3.2`).
+   - Tela de gestão de serviços no painel do administrador e exibição no catálogo público da barbearia (`Task-3.4` e `Task-3.5`).
+
 
 

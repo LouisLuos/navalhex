@@ -34,12 +34,20 @@ public class TenantController {
         return ApiResponse.success(HttpStatus.CREATED, "Tenant registered successfully", null);
     }
 
+    @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<TenantResponseDTO> getMyTenant(@AuthenticationPrincipal UserEntity user) {
+        TenantResponseDTO tenant = this.tenantService.getMyTenant(user.getId());
+        return ApiResponse.success(HttpStatus.OK, "Dados da sua barbearia", tenant);
+    }
+    
     @GetMapping("/{slug}")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<TenantResponseDTO> getBySlug(@PathVariable String slug) {
         TenantResponseDTO tenant = this.tenantService.getTenantBySlug(slug);
         return ApiResponse.success(HttpStatus.OK, "Barbearia encontrada com sucesso", tenant);
     }
+
 
     
 }

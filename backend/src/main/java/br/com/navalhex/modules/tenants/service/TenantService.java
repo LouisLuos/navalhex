@@ -9,6 +9,7 @@ import br.com.navalhex.modules.tenants.entity.TenantEntity;
 import br.com.navalhex.modules.tenants.repository.TenantRepository;
 import br.com.navalhex.modules.user.entity.UserEntity;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -43,6 +44,13 @@ public class TenantService {
         .orElseThrow(() -> new IllegalArgumentException("Barbearia não encontrada"));
     
     return new TenantResponseDTO(tenant);
+}   
+
+    public TenantResponseDTO getMyTenant(UUID ownerId) {
+    return tenantRepository.findByOwnerId(ownerId)
+        .map(TenantResponseDTO::new)
+        .orElse(null);
 }
+
 
 }

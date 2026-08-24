@@ -1,0 +1,84 @@
+<div class="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-amber-500 selection:text-zinc-950 flex flex-col">
+  <!-- Background Glow Effect -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="flex-1 flex items-center justify-center relative z-10">
+      <div class="flex flex-col items-center gap-3">
+        <svg class="animate-spin h-8 w-8 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-sm text-zinc-400">Carregando barbearia...</p>
+      </div>
+    </div>
+  } @else if (notFound()) {
+    <div class="flex-1 flex items-center justify-center p-4 relative z-10">
+      <div class="max-w-md w-full text-center bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 backdrop-blur-xl">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-950/40 text-red-400 border border-red-500/20 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">Barbearia Não Encontrada</h2>
+        <p class="text-sm text-zinc-400 mb-6">O link que você acessou não corresponde a nenhum estabelecimento ativo no Navalhex.</p>
+        <a routerLink="/login" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm bg-zinc-800 hover:bg-zinc-700 text-white transition duration-150">
+          Voltar ao Início
+        </a>
+      </div>
+    </div>
+  } @else if (tenant()) {
+    <!-- Header Barbearia -->
+    <header class="relative z-10 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-xl">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            Aberto • {{ tenant()?.openingHours }} às {{ tenant()?.closingHours }}
+          </div>
+          <h1 class="text-3xl font-bold tracking-tight text-white">{{ tenant()?.companyName }}</h1>
+          <p class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {{ tenant()?.companyAddress }}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a
+            [href]="'https://wa.me/55' + tenant()?.whatsapp"
+            target="_blank"
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition duration-150 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content: Catálogo e Agendamentos -->
+    <main class="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-xl text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 mb-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white">Catálogo de Serviços em Breve</h3>
+        <p class="text-xs text-zinc-400 max-w-md mx-auto mt-1">
+          O dono da barbearia está configurando os serviços e profissionais da equipe (Task 3).
+        </p>
+      </div>
+    </main>
+  }
+</div>
