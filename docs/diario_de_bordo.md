@@ -194,8 +194,53 @@ Implementar o fluxo completo de autenticação e proteção de rotas com JSON We
 
 ---
 
-### ⏭️ Próximos Passos (Próxima Sessão):
-1. **Guards de Rota no Angular (`auth.guard.ts`):** Proteger a rota `/dashboard` para impedir acesso direto sem token e redirecionar para `/login`.
-2. **HTTP Interceptor no Angular:** Anexar automaticamente o cabeçalho `Authorization: Bearer <token>` em todas as requisições autenticadas para o backend.
-3. **Fase 2 de Autenticação (Refresh Token & Cookies HttpOnly):** Adicionar suporte a renovação de tokens de longa duração.
+## 📅 24/08/2026 - Módulo de Barbearia (Tenant), Migration V2 e Endpoint de Cadastro (Task-2.1 e Task-2.2)
+
+### 🎯 Objetivo do Dia
+Iniciar a **US-MVP.2 (Criação da Barbearia/Tenant)** implementando a persistência no banco de dados e a camada backend para cadastro do estabelecimento com vínculo de dono (`owner_id`):
+1. Criação da migration `V2__init_table_tenants.sql`.
+2. Criação do módulo `br.com.navalhex.modules.tenants` com Entity, Repository, DTO, Service e Controller.
+3. Validação de unicidade de `slug` e regra de 1 barbearia por dono logado (`@AuthenticationPrincipal`).
+
+---
+
+### 🛠️ O que foi feito:
+
+#### 1. Banco de Dados (Flyway Migration)
+* **`V2__init_table_tenants.sql`:**
+  * Criação da tabela `tenants` com:
+    * Chave primária `id UUID DEFAULT gen_random_uuid()`.
+    * Foreign key `owner_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE`.
+    * `company_name VARCHAR(150) NOT NULL`.
+    * Horários de funcionamento `opening_hours TIME NOT NULL` e `closing_hours TIME NOT NULL`.
+    * `slug VARCHAR(100) NOT NULL UNIQUE` para link público.
+    * `whatsapp VARCHAR(20) NOT NULL` e `company_address VARCHAR(255) NOT NULL`.
+    * Campos de auditoria `created_at` e `updated_at`.
+
+#### 2. Backend (Spring Boot 4 / Java 21)
+* **`TenantEntity.java`:** Mapeamento JPA com Lombok (`@Builder`, `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`) e auditoria via `@CreationTimestamp` e `@UpdateTimestamp`.
+* **`RegisterDTO.java` (`modules.tenants.dto`):** Record de entrada com validações do Jakarta Bean Validation (`@NotBlank`, `@NotNull`, `@Size`, `@Pattern`).
+* **`TenantRepository.java`:** Interface JPA com derived query methods `existsBySlug(String slug)` e `existsByOwnerId(UUID ownerId)`.
+* **`TenantService.java`:**
+  * Validação de unicidade do `slug`.
+  * Validação de que o usuário logado ainda não possui barbearia cadastrada (`existsByOwnerId`).
+  * Persistência do tenant associado ao `user.getId()`.
+* **`TenantController.java`:**
+  * Endpoint `POST /api/tenants/register` anotado com `@ResponseStatus(HttpStatus.CREATED)`.
+  * Injeção automática do usuário autenticado via `@AuthenticationPrincipal UserEntity user`.
+
+---
+
+### 💡 Conceitos e Decisões Aprendidos:
+* **Flyway Incremental:** Arquivos de migration adicionais (`V2`, `V3`, etc.) devem conter apenas novas tabelas/alterações, sem redeclarar estruturas criadas no `V1`.
+* **Injeção de Usuário Logado com `@AuthenticationPrincipal`:** Como o Spring Security injeta o `UserEntity` autenticado diretamente nos parâmetros do Controller sem necessidade de acoplar o Service com repositórios de outros módulos.
+* **`existsById` vs `existsByOwnerId`:** A diferença entre buscar pela chave primária da entidade (`id`) versus buscar por um campo de chave estrangeira (`owner_id`).
+
+---
+
+### ⏭️ Próximos Passos:
+1. **Endpoint Público da Barbearia (`Task-2.3`):** Criar `GET /api/tenants/{slug}` para consulta pública de dados do estabelecimento.
+2. **Frontend Onboarding (`Task-2.4`):** Criar a tela de cadastro da barbearia no frontend Angular.
+3. **Página Pública `/{slug}` (`Task-2.5`):** Criar a landing page pública da barbearia.
+
 
