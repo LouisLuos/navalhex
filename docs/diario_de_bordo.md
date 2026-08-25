@@ -253,11 +253,87 @@ Iniciar a **US-MVP.2 (Criação da Barbearia/Tenant)** implementando a persistê
 
 ---
 
-### ⏭️ Próximos Passos (Próxima Sessão):
+### ⏭️ Próximos Passos:
 1. **US-MVP.3: Cadastro de Serviços Simples:**
-   - Criação da tabela `services` vinculada ao `tenant_id` (`Task-3.1`).
-   - CRUD de serviços no Backend (`Task-3.2`).
+   - Criação da tabela `treatments` vinculada ao `tenant_id` (`Task-3.1`) - **[CONCLUÍDO]**
+   - Endpoints `POST` e `GET` de tratamentos no Backend (`Task-3.2`) - **[CONCLUÍDO]**
    - Tela de gestão de serviços no painel do administrador e exibição no catálogo público da barbearia (`Task-3.4` e `Task-3.5`).
+
+---
+
+## 📅 25/08/2026 - Módulo de Serviços/Tratamentos (Treatments), Migration V3 e Endpoints POST & GET (Task-3.1 e Task-3.2)
+
+### 🎯 Objetivo do Dia
+Iniciar a **US-MVP.3 (Cadastro de Serviços Simples)** implementando:
+1. Migration `V3__init_table_treatments.sql`.
+2. Criação do módulo `br.com.navalhex.modules.treatments` com Entity, Repository, DTOs, Service e Controller.
+3. Validação de autorização multi-tenant (garantir que apenas o dono do tenant cadastre serviços).
+4. Endpoint público para listar todos os tratamentos por `slug`.
+5. Atualização da especificação OpenAPI (`docs/swagger.yaml`) e contratos em Markdown (`docs/swagger_api_contracts.md`).
+
+---
+
+### 🛠️ O que foi feito:
+
+#### 1. Banco de Dados (Flyway Migration)
+* **`V3__init_table_treatments.sql`:**
+  * Tabela `treatments` com `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`.
+  * `title VARCHAR(30) NOT NULL` e `description VARCHAR(255)`.
+  * `price DECIMAL(10, 2) NOT NULL` e `duration_minutes INT NOT NULL`.
+  * Foreign key `tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE`.
+  * Auditoria com `created_at` e `updated_at`.
+
+#### 2. Backend (Spring Boot 4 / Java 21)
+* **`TreatmentsEntity.java`:** Entidade JPA com Lombok e campos mapeados (`id`, `title`, `description`, `price`, `duration` via `duration_minutes`, `tenantId`).
+* **`TreatmentsDTO.java`:** Record imutável com Bean Validation (`@NotBlank`, `@Size`, `@NotNull`).
+* **`ResponseTreatmentsDTO.java`:** DTO de resposta expondo `id`, `title`, `description`, `price`, `durationMinutes`.
+* **`TreatmentsRepository.java`:** Derived query method `List<TreatmentsEntity> findByTenantId(UUID tenantId)`.
+* **`TreatmentsService.java`:**
+  * `createTreatment`: Busca o tenant por slug, valida se `user.getId().equals(tenant.getOwnerId())`, monta a entidade e persiste.
+  * `getTreatments`: Busca o tenant por slug e lista todos os tratamentos via `findByTenantId(tenant.getId())` mapeando via Stream API.
+* **`TreatmentsController.java`:**
+  * `POST /api/tenants/{slug}/treatments` (Autenticado via `@AuthenticationPrincipal UserEntity user`, HTTP 201).
+  * `GET /api/tenants/{slug}/treatments` (Público, HTTP 200).
+
+---
+
+### 💡 Guia de Estudos: JPA Derived Queries vs Relacionamentos de Entidade (@OneToMany)
+
+#### Cenário 1: Consulta Direta por Repository (O que fizemos hoje)
+* **Como funciona:**
+  - As entidades `TenantEntity` e `TreatmentsEntity` são desacopladas (guardam apenas o `UUID tenantId` puro).
+  - No Service, buscamos o tenant e depois chamamos `treatmentsRepository.findByTenantId(tenant.getId())`.
+* **Vantagens:**
+  - **Simplicidade e Desacoplamento:** Fácil de entender, sem risco de carregar dados pesados sem querer.
+  - **Evita o problema N+1:** Você tem controle total e explícito de cada `SELECT` enviado ao banco.
+  - **Ideal para Arquiteturas Modulares:** Um módulo não precisa carregar o grafo inteiro de objetos de outro módulo.
+* **Desvantagens:**
+  - Exige chamar dois repositórios explicitamente quando precisamos das duas entidades.
+
+#### Cenário 2: Relacionamento Mapeado com `@OneToMany`
+* **Como funcionaria:**
+  - Dentro de `TenantEntity`, colocaríamos:
+    ```java
+    @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY)
+    private List<TreatmentsEntity> treatments = new ArrayList<>();
+    ```
+  - E dentro de `TreatmentsEntity`:
+    ```java
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    private TenantEntity tenant;
+    ```
+* **Como consultaríamos:** `tenant.getTreatments()` carregaria os serviços.
+* **Cuidado com Armadilhas do `@OneToMany`:**
+  - **LazyInitializationException:** Se tentar acessar `tenant.getTreatments()` fora de uma transação aberta (`@Transactional`), o Hibernate estoura erro.
+  - **Problema de Serialização JSON / Loop Infinito:** Se retornar a entidade diretamente no Controller, o Jackson tenta serializar `Tenant -> Treatments -> Tenant -> Treatments...` até dar StackOverflow. (Por isso **SEMPRE** usamos DTOs!).
+
+#### Regra de Ouro para Derived Query Methods no Spring Data JPA:
+* O Spring Data lê o nome do método em inglês e monta a cláusula `WHERE` baseado no nome **exato** da propriedade Java:
+  - `findByEmail(String email)` -> `WHERE email = ?`
+  - `findByTenantId(UUID tenantId)` -> `WHERE tenant_id = ?` (procura a propriedade `tenantId` na Entity)
+  - `existsBySlug(String slug)` -> `SELECT count(...) WHERE slug = ?`
+
 
 
 

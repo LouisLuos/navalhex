@@ -1,0 +1,551 @@
+openapi: 3.0.3
+info:
+  title: Navalhex API
+  description: Documentação dos contratos da API REST do Navalhex (SaaS Multi-tenant para Barbearias).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Servidor de Desenvolvimento Local
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Auth & Usuários
+      summary: Cadastro de novo usuário
+      description: Registra um usuário no sistema com role específica (ADMIN, TENANT, BARBER, CUSTOMER).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '201':
+          description: Usuário cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+              example:
+                status: 201
+                message: "Usuário cadastrado com sucesso!"
+                data: null
+                errors: null
+        '400':
+          description: Erro de validação nos campos ou regra de negócio (e-mail/whatsapp duplicado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+              example:
+                status: 400
+                message: "Erro de validação"
+                data: null
+                errors:
+                  email: "O email deve ser válido"
+                  password: "Sua senha deve conter pelo menos 8 caracteres..."
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth & Usuários
+      summary: Autenticação de usuário
+      description: Realiza o login via e-mail e senha, retornando token JWT e dados do perfil.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLogin'
+              example:
+                status: 200
+                message: "Login realizado com sucesso!"
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  name: "Carlos Oliveira"
+                  email: "carlos@barbearia.com"
+                  role: "TENANT"
+                errors: null
+        '400':
+          description: Credenciais inválidas ou erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+              example:
+                status: 400
+                message: "Email ou senha incorretos"
+                data: null
+                errors: null
+
+  /api/tenants/register:
+    post:
+      tags:
+        - Tenants (Barbearias)
+      summary: Cadastro de barbearia (Tenant)
+      description: Registra uma nova barbearia vinculada ao usuário autenticado (dono).
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterTenantRequest'
+      responses:
+        '201':
+          description: Barbearia cadastrada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+              example:
+                status: 201
+                message: "Tenant registered successfully"
+                data: null
+                errors: null
+        '400':
+          description: Erro de validação ou slug/whatsapp já em uso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+        '403':
+          description: Não autorizado (token ausente ou inválido)
+
+  /api/tenants/me:
+    get:
+      tags:
+        - Tenants (Barbearias)
+      summary: Obter barbearia do usuário logado
+      description: Retorna os dados da barbearia pertencente ao usuário autenticado.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Barbearia encontrada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTenant'
+              example:
+                status: 200
+                message: "Dados da sua barbearia"
+                data:
+                  companyName: "Barbearia Navalha de Ouro"
+                  slug: "navalha-de-ouro"
+                  openingHours: "08:00:00"
+                  closingHours: "20:00:00"
+                  whatsapp: "(11) 99999-8888"
+                  companyAddress: "Rua Augusta, 1500 - São Paulo/SP"
+                errors: null
+        '404':
+          description: Usuário logado não possui tenant cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+        '403':
+          description: Não autorizado
+
+  /api/tenants/{slug}:
+    get:
+      tags:
+        - Tenants (Barbearias)
+      summary: Obter barbearia pelo slug (Público)
+      description: Busca pública das informações da barbearia a partir do slug da URL.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug único da barbearia
+          schema:
+            type: string
+            example: "navalha-de-ouro"
+      responses:
+        '200':
+          description: Barbearia encontrada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTenant'
+              example:
+                status: 200
+                message: "Barbearia encontrada com sucesso"
+                data:
+                  companyName: "Barbearia Navalha de Ouro"
+                  slug: "navalha-de-ouro"
+                  openingHours: "08:00:00"
+                  closingHours: "20:00:00"
+                  whatsapp: "(11) 99999-8888"
+                  companyAddress: "Rua Augusta, 1500 - São Paulo/SP"
+                errors: null
+        '404':
+          description: Barbearia não encontrada para o slug informado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+  /api/tenants/{slug}/treatments:
+    post:
+      tags:
+        - Tratamentos & Serviços
+      summary: Cadastrar novo serviço na barbearia
+      description: Cadastra um serviço/tratamento. Apenas o dono autenticado da barbearia tem permissão.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug da barbearia
+          schema:
+            type: string
+            example: "navalhex-prime"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTreatmentRequest'
+      responses:
+        '201':
+          description: Serviço cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+              example:
+                status: 201
+                message: "Serviço criado com sucesso"
+                data: null
+                errors: null
+        '400':
+          description: Barbearia não encontrada, campos inválidos ou usuário não é o dono
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+        '403':
+          description: Não autorizado (token ausente ou inválido)
+
+    get:
+      tags:
+        - Tratamentos & Serviços
+      summary: Listar todos os serviços da barbearia (Público)
+      description: Retorna a lista de tratamentos e serviços ativos da barbearia a partir do slug.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug da barbearia
+          schema:
+            type: string
+            example: "navalhex-prime"
+      responses:
+        '200':
+          description: Lista de serviços retornada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListTreatments'
+              example:
+                status: 200
+                message: "Serviço encontrado com sucesso"
+                data:
+                  - id: "b2d3e4f5-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+                    title: "Corte Masculino Degradê"
+                    description: "Corte com tesoura e máquina."
+                    price: 45.00
+                    durationMinutes: 35
+                errors: null
+        '400':
+          description: Barbearia não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Envie o token JWT no formato `Bearer <token>`
+
+  schemas:
+    UserRole:
+      type: string
+      enum: [ADMIN, TENANT, BARBER, CUSTOMER]
+      example: TENANT
+
+    RegisterUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - whatsapp
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "João da Silva"
+        email:
+          type: string
+          format: email
+          example: "joao@email.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 60
+          description: "Mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial"
+          example: "Password123@"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        whatsapp:
+          type: string
+          minLength: 11
+          maxLength: 15
+          pattern: "^(?:\\+?55\\s?)?(?:\\([1-9]{2}\\)|[1-9]{2})\\s?9?[0-9]{4}-?[0-9]{4}$"
+          example: "(11) 91234-5678"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "joao@email.com"
+        password:
+          type: string
+          example: "Password123@"
+
+    LoginResponseData:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        name:
+          type: string
+          example: "João da Silva"
+        email:
+          type: string
+          example: "joao@email.com"
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    RegisterTenantRequest:
+      type: object
+      required:
+        - companyName
+        - openingHours
+        - closingHours
+        - slug
+        - whatsapp
+        - companyAddress
+      properties:
+        companyName:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "Barbearia Navalha de Ouro"
+        openingHours:
+          type: string
+          format: time
+          example: "08:00:00"
+        closingHours:
+          type: string
+          format: time
+          example: "20:00:00"
+        slug:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "navalha-de-ouro"
+        whatsapp:
+          type: string
+          minLength: 11
+          maxLength: 15
+          pattern: "^(?:\\+?55\\s?)?(?:\\([1-9]{2}\\)|[1-9]{2})\\s?9?[0-9]{4}-?[0-9]{4}$"
+          example: "(11) 99999-8888"
+        companyAddress:
+          type: string
+          minLength: 3
+          maxLength: 255
+          example: "Rua Augusta, 1500 - São Paulo/SP"
+
+    TenantResponseData:
+      type: object
+      properties:
+        companyName:
+          type: string
+          example: "Barbearia Navalha de Ouro"
+        slug:
+          type: string
+          example: "navalha-de-ouro"
+        openingHours:
+          type: string
+          format: time
+          example: "08:00:00"
+        closingHours:
+          type: string
+          format: time
+          example: "20:00:00"
+        whatsapp:
+          type: string
+          example: "(11) 99999-8888"
+        companyAddress:
+          type: string
+          example: "Rua Augusta, 1500 - São Paulo/SP"
+
+    ApiResponseVoid:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 201
+        message:
+          type: string
+          example: "Operação realizada com sucesso"
+        data:
+          type: object
+          nullable: true
+          default: null
+        errors:
+          type: object
+          nullable: true
+          default: null
+
+    ApiResponseLogin:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Login realizado com sucesso!"
+        data:
+          $ref: '#/components/schemas/LoginResponseData'
+        errors:
+          type: object
+          nullable: true
+          default: null
+
+    ApiResponseTenant:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Barbearia encontrada com sucesso"
+        data:
+          $ref: '#/components/schemas/TenantResponseData'
+        errors:
+          type: object
+          nullable: true
+          default: null
+
+    ApiResponseError:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Erro de validação ou regra de negócio"
+        data:
+          type: object
+          nullable: true
+          default: null
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            email: "O email deve ser válido"
+
+    CreateTreatmentRequest:
+      type: object
+      required:
+        - title
+        - price
+        - durationMinutes
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 30
+          example: "Corte Masculino Degradê"
+        description:
+          type: string
+          minLength: 10
+          maxLength: 255
+          example: "Corte moderno com tesoura e máquina."
+        price:
+          type: number
+          format: double
+          example: 45.00
+        durationMinutes:
+          type: integer
+          example: 35
+
+    ResponseTreatmentData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "b2d3e4f5-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+        title:
+          type: string
+          example: "Corte Masculino Degradê"
+        description:
+          type: string
+          example: "Corte moderno com tesoura e máquina."
+        price:
+          type: number
+          format: double
+          example: 45.00
+        durationMinutes:
+          type: integer
+          example: 35
+
+    ApiResponseListTreatments:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Serviço encontrado com sucesso"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseTreatmentData'
+        errors:
+          type: object
+          nullable: true
+          default: null
+
