@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { AuthService } from '../../core/services/auth';
-import { TenantService } from '../../core/services/tenant';
+import { AuthService } from '../../core/services/auth.service';
+import { TenantService } from '../../core/services/tenant.service';
 import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LoginDTO } from '../../core/models/user.model';

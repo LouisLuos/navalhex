@@ -328,11 +328,53 @@ Iniciar a **US-MVP.3 (Cadastro de Serviços Simples)** implementando:
   - **LazyInitializationException:** Se tentar acessar `tenant.getTreatments()` fora de uma transação aberta (`@Transactional`), o Hibernate estoura erro.
   - **Problema de Serialização JSON / Loop Infinito:** Se retornar a entidade diretamente no Controller, o Jackson tenta serializar `Tenant -> Treatments -> Tenant -> Treatments...` até dar StackOverflow. (Por isso **SEMPRE** usamos DTOs!).
 
-#### Regra de Ouro para Derived Query Methods no Spring Data JPA:
-* O Spring Data lê o nome do método em inglês e monta a cláusula `WHERE` baseado no nome **exato** da propriedade Java:
-  - `findByEmail(String email)` -> `WHERE email = ?`
-  - `findByTenantId(UUID tenantId)` -> `WHERE tenant_id = ?` (procura a propriedade `tenantId` na Entity)
-  - `existsBySlug(String slug)` -> `SELECT count(...) WHERE slug = ?`
+---
+
+## 📅 26/08/2026 - Conclusão do Frontend da Task 3, Refatoração do Design System & Suporte a Light/Dark Theme
+
+### 🎯 Objetivo do Dia
+1. Concluir a **US-MVP.3 (Cadastro e Catálogo de Serviços no Frontend)**:
+   - Criação de `treatment.model.ts` e `treatment.service.ts` com métodos `getTreatments`, `registerTreatment`, `updateTreatment` e `deleteTreatment`.
+   - Implementação do painel de **"Catálogo de Serviços"** no Dashboard com listagem em cards, modal para novo/edição e ação de exclusão.
+   - Atualização da **Página Pública (`/{slug}`)** renderizando os serviços reais com preço e duração.
+2. **Refatoração do Design System & Suporte a Light Theme:**
+   - Eliminação de gradientes e efeitos de brilho laranja pesados em favor de um padrão sóbrio, limpo e direto ao ponto (estilo Linear/Shadcn).
+   - Criação do `ThemeService` no Angular com persistência no `localStorage`.
+   - Suporte completo a **Light Mode** e **Dark Mode** em todas as telas com botão de alternância (☀️ / 🌙).
+
+---
+
+### 🛠️ O que foi feito:
+
+#### 1. Frontend (Angular & Tailwind CSS)
+* **`treatment.model.ts`:** Tipos TypeScript sincronizados com os contratos do backend (`title`, `description`, `price`, `durationMinutes`).
+* **`treatment.service.ts`:** Consumo das rotas dinâmicas `/api/tenants/{slug}/treatments`.
+* **`theme.service.ts`:** Gerenciador de tema reativo via Signals, manipulando a classe `.dark` no elemento raiz `<html>` e persistindo no `localStorage`.
+* **`DashboardComponent`:**
+  - Métricas rápidas da unidade (serviços ativos, jornada e slug).
+  - Tabela/Cards do catálogo com preço em R$ e badge de duração.
+  - Modal interativo para criação e edição com validação reativa.
+  - Botão de alternar tema e copiar link público.
+* **`PublicTenantComponent`:**
+  - Exibição limpa do catálogo de serviços para clientes.
+  - Alternador de tema no cabeçalho público.
+* **Telas de Login, Registro e Onboarding:**
+  - Refatoradas com a nova paleta neutra e suporte dual Light & Dark.
+
+---
+
+### 💡 Conceitos e Decisões Aprendidos:
+* **Tailwind v4 `@custom-variant dark`:** Configuração do seletor `.dark` para suporte a alternância manual de temas independentemente do sistema operacional.
+* **Alinhamento Rigoroso de Contratos (DTOs):** A importância de manter a nomenclatura exata dos campos no frontend (`title`, `durationMinutes`) em sincronia com o backend Java para evitar `null` no banco de dados.
+* **Design Funcional vs Decorativo:** Como um design limpo e com alto contraste melhora a usabilidade e reduz o ruído visual em aplicações de gestão e agendamento.
+
+---
+
+### ⏭️ Próximos Passos (Próxima Sessão):
+1. **US-MVP.4: Perfil e Vínculo do Profissional (Task 4):**
+   - Migration `V4__init_table_professionals.sql` e tabela NxN `professional_treatments`.
+   - Módulo Spring Boot `professionals` com CRUD e endpoint de associação de serviços.
+
 
 
 

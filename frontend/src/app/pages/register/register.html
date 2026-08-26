@@ -1,31 +1,25 @@
-<div class="min-h-screen bg-zinc-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 text-zinc-100 font-sans selection:bg-amber-500 selection:text-zinc-950">
-  <!-- Background Glow Effect -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl"></div>
-  </div>
-
-  <div class="w-full max-w-md relative z-10">
+<div class="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-150">
+  <div class="w-full max-w-md">
     <!-- Header / Brand -->
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl shadow-black/50 mb-4 text-amber-400">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 mb-4 text-zinc-900 dark:text-zinc-100 shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           <rect x="3" y="11" width="18" height="10" rx="2"/>
           <circle cx="12" cy="16" r="1"/>
         </svg>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Criar sua conta</h1>
-      <p class="text-sm text-zinc-400 mt-2">Junte-se ao <span class="text-amber-400 font-semibold">Navalhex</span> e comece agora</p>
+      <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Criar sua conta</h1>
+      <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1.5">Cadastre-se para agendar ou gerenciar sua barbearia</p>
     </div>
 
     <!-- Card -->
-    <div class="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/80">
+    <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm transition-colors duration-150">
       
       <!-- Error Message Alert -->
       @if (errorMessage()) {
-        <div class="mb-6 p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-400 text-sm flex items-start gap-3 animate-in fade-in duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-start gap-2.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -38,53 +32,53 @@
         
         <!-- Name -->
         <div>
-          <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Nome Completo</label>
+          <label for="name" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Nome Completo</label>
           <input
             type="text"
             id="name"
             formControlName="name"
             placeholder="Ex: Luiz Carlos"
-            class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm"
           />
         </div>
 
         <!-- Email -->
         <div>
-          <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">E-mail</label>
+          <label for="email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">E-mail</label>
           <input
             type="email"
             id="email"
             formControlName="email"
             placeholder="seu@email.com"
-            class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm"
           />
         </div>
 
         <!-- WhatsApp -->
         <div>
-          <label for="whatsapp" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">WhatsApp</label>
+          <label for="whatsapp" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">WhatsApp</label>
           <input
             type="text"
             id="whatsapp"
             formControlName="whatsapp"
             placeholder="(11) 98765-4321"
-            class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm"
           />
         </div>
 
         <!-- Role Selector -->
         <div>
-          <label for="role" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tipo de Perfil</label>
+          <label for="role" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Tipo de Perfil</label>
           <div class="relative">
             <select
               id="role"
               formControlName="role"
-              class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm appearance-none cursor-pointer"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm appearance-none cursor-pointer"
             >
-              <option value="CUSTOMER" class="bg-zinc-900 text-white">Cliente (Quero agendar serviços)</option>
-              <option value="TENANT" class="bg-zinc-900 text-white">Dono de Barbearia (Quero cadastrar meu negócio)</option>
+              <option value="CUSTOMER">Cliente (Quero agendar serviços)</option>
+              <option value="TENANT">Dono de Barbearia (Quero cadastrar meu negócio)</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-400">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-zinc-400">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -95,37 +89,37 @@
         <!-- Password & Confirm Password Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Senha</label>
+            <label for="password" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Senha</label>
             <input
               type="password"
               id="password"
               formControlName="password"
               placeholder="••••••••"
-              class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm"
             />
           </div>
 
           <div>
-            <label for="confirmPassword" class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Confirmar Senha</label>
+            <label for="confirmPassword" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Confirmar Senha</label>
             <input
               type="password"
               id="confirmPassword"
               formControlName="confirmPassword"
               placeholder="••••••••"
-              class="w-full px-4 py-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition duration-150 text-sm"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-zinc-600 dark:focus:border-zinc-500 transition text-sm"
             />
           </div>
         </div>
 
         <!-- Submit Button -->
-        <div class="pt-4">
+        <div class="pt-3">
           <button
             type="submit"
             [disabled]="registerForm.invalid || isLoading()"
-            class="w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 shadow-amber-500/20 active:scale-[0.98]"
+            class="w-full py-2.5 px-4 rounded-xl font-medium text-sm transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 text-white active:scale-[0.99]"
           >
             @if (isLoading()) {
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-zinc-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="animate-spin h-4 w-4 text-white dark:text-zinc-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -138,9 +132,9 @@
       </form>
 
       <!-- Footer Links -->
-      <div class="mt-6 text-center text-xs text-zinc-500">
+      <div class="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-400">
         Já tem uma conta?
-        <a routerLink="/login" class="text-amber-400 hover:text-amber-300 font-medium transition duration-150 ml-1 underline underline-offset-4">Fazer Login</a>
+        <a routerLink="/login" class="text-zinc-900 dark:text-zinc-100 hover:underline font-medium ml-1">Fazer Login</a>
       </div>
     </div>
   </div>

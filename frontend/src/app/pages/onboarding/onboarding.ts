@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TenantService } from '../../core/services/tenant';
+import { TenantService } from '../../core/services/tenant.service';
 import { RegisterTenantDTO } from '../../core/models/tenant.model';
 
 @Component({
